@@ -134,12 +134,13 @@ func TestCreateCluster() error {
 	attacker := vegeta.NewAttacker(connAttacker)
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: http.MethodGet,
-		URL:    args.gatewayURL + helpers.ClustersEndpoint,
+		URL:    helpers.ClustersEndpoint,
+		Body:   nil,
 	})
 	for res := range attacker.Attack(targeter, rate, duration, "Create") {
 		metrics.Add(res)
 	}
-	reporter := vegeta.NewHDRHistogramPlotReporter(&metrics)
+	reporter := vegeta.NewJSONReporter(&metrics)
 	histoPath := filepath.Join(args.outputDirectory, fmt.Sprintf("%s.histo", "create-clusters-report"))
 	out, err := os.Create(histoPath)
 	if err != nil {
