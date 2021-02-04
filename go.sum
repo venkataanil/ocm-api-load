@@ -1167,6 +1167,7 @@ github.com/klauspost/cpuid v0.0.0-20180405133222-e7e905edc00e/go.mod h1:Pj4uuM52
 github.com/klauspost/cpuid v1.2.0/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
 github.com/klauspost/cpuid v1.2.1/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
+github.com/konsorten/go-windows-terminal-sequences v1.0.2 h1:DB17ag19krx9CFsz4o3enTrPXyIXCl+2iCXH/aMAp9s=
 github.com/konsorten/go-windows-terminal-sequences v1.0.2/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/fs v0.0.0-20131111012553-2788f0dbd169/go.mod h1:glhvuHOU9Hy7/8PwwdtnarXqLagOX0b/TbZx2zLMqEg=
 github.com/kr/fs v0.1.0/go.mod h1:FFnZGqtBN9Gxj7eW1uZ42v5BccTP0vu6NEaFoC2HwRg=
@@ -1444,6 +1445,10 @@ github.com/openshift-online/ocm-sdk-go v0.1.119/go.mod h1:3i3a/LEYtC7DMor3N94PTP
 github.com/openshift-online/ocm-sdk-go v0.1.155/go.mod h1:yYgtXuuecN3+0UVCGHs2fmOzJLLzF9RlN+Y4QPUzURw=
 github.com/openshift-online/ocm-sdk-go v0.1.156 h1:3S63jkBDvUUFU/VG5JXVd2r+GYJ5tJ5bxHiZbM/cBh0=
 github.com/openshift-online/ocm-sdk-go v0.1.156/go.mod h1:orYkshw3puzWwzDo2RIBIZXTxWSYbQ4doJBhuZu2DcI=
+github.com/openshift-online/ocm-sdk-go v0.1.157-0.20210204184614-c23cccc14bc1 h1:dmT/9TNVazHhn5ycKeoT2E5UewQ+ojzOD5DcLisHieQ=
+github.com/openshift-online/ocm-sdk-go v0.1.157-0.20210204184614-c23cccc14bc1/go.mod h1:orYkshw3puzWwzDo2RIBIZXTxWSYbQ4doJBhuZu2DcI=
+github.com/openshift-online/ocm-sdk-go v0.1.157-0.20210204185703-869236f7f99c h1:866PiRgC6xOClcfzd+R7IxuHpLsI1nsGc4VJXZ3FKg0=
+github.com/openshift-online/ocm-sdk-go v0.1.157-0.20210204185703-869236f7f99c/go.mod h1:orYkshw3puzWwzDo2RIBIZXTxWSYbQ4doJBhuZu2DcI=
 github.com/openshift/api v0.0.0-20200127192224-ffde1bfabb9f/go.mod h1:fT6U/JfG8uZzemTRwZA2kBDJP5nWz7v05UHnty/D+pk=
 github.com/openshift/api v0.0.0-20200205133042-34f0ec8dab87/go.mod h1:fT6U/JfG8uZzemTRwZA2kBDJP5nWz7v05UHnty/D+pk=
 github.com/openshift/api v0.0.0-20200320142426-0de0d539b0c3/go.mod h1:7k3+uZYOir97walbYUqApHUA2OPhkQpVJHt0n7GJ6P4=

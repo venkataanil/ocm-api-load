@@ -14,7 +14,6 @@ import (
 	sdk "github.com/openshift-online/ocm-sdk-go"
 	v1 "github.com/openshift-online/ocm-sdk-go/clustersmgmt/v1"
 	vegeta "github.com/tsenart/vegeta/v12/lib"
-	"gitlab.cee.redhat.com/service/uhc-clusters-service/test/api"
 )
 
 var connection *sdk.Connection
@@ -94,6 +93,7 @@ func init() {
 
 func main() {
 	flag.Parse()
+
 	connection, err := sdk.NewConnectionBuilder().
 		Insecure(true).
 		URL(args.gatewayURL).
@@ -107,17 +107,20 @@ func main() {
 		fmt.Printf("Error creating api connection: %v", err)
 		os.Exit(1)
 	}
+	defer helpers.Cleanup(connection)
+
 	rate = vegeta.Rate{Freq: args.durationInMin, Per: time.Second}
 	duration = time.Duration(args.durationInMin) * time.Minute
 	connAttacker = vegeta.Client(&http.Client{Transport: connection})
+	attacker := vegeta.NewAttacker(connAttacker)
 
-	if err := TestCreateCluster(); err != nil {
+	if err := TestCreateCluster(attacker); err != nil {
 		fmt.Printf("Error running create cluster load test: %v", err)
 		os.Exit(1)
 	}
 }
 
-func TestCreateCluster() error {
+func TestCreateCluster(attacker *vegeta.Attacker) error {
 	fakeClusterProps := map[string]string{
 		"fake_cluster": "true",
 	}
@@ -131,7 +134,6 @@ func TestCreateCluster() error {
 	var raw bytes.Buffer
 	err = v1.MarshalCluster(body, &raw)
 
-	attacker := vegeta.NewAttacker(connAttacker)
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: http.MethodGet,
 		URL:    helpers.ClustersEndpoint,
@@ -140,18 +142,18 @@ func TestCreateCluster() error {
 	for res := range attacker.Attack(targeter, rate, duration, "Create") {
 		metrics.Add(res)
 	}
-	reporter := vegeta.NewJSONReporter(&metrics)
-	histoPath := filepath.Join(args.outputDirectory, fmt.Sprintf("%s.histo", "create-clusters-report"))
+
+	return writeTestReport("create-cluster-replort", &metrics)
+}
+
+func writeTestReport(name string, metrics *vegeta.Metrics) error {
+	reporter := vegeta.NewJSONReporter(metrics)
+	histoPath := filepath.Join(args.outputDirectory, fmt.Sprintf("%s.histo", name))
 	out, err := os.Create(histoPath)
 	if err != nil {
-		return fmt.Errorf("error while report: %v", err)
+		return fmt.Errorf("Error while report: %v", err)
 	}
 	reporter.Report(out)
 	log.Printf("Wrote load test histogram: %s\n", histoPath)
 	return nil
-}
-
-func validateArgs() {
-	api.CheckEmpty(args.gatewayURL, "gateway-url")
-	api.CheckEmpty(args.token, "token")
 }
