@@ -1,26 +1,25 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/nimrodshn/cs-load-test/pkg/helpers"
+	"github.com/nimrodshn/cs-load-test/pkg/tests"
 	sdk "github.com/openshift-online/ocm-sdk-go"
-	v1 "github.com/openshift-online/ocm-sdk-go/clustersmgmt/v1"
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 )
 
 var connection *sdk.Connection
 var connAttacker func(*vegeta.Attacker)
-var metrics vegeta.Metrics
 var rate vegeta.Rate
 var duration time.Duration
+
+var attacker *vegeta.Attacker
+var metrics vegeta.Metrics
 
 var args struct {
 	load            bool
@@ -112,48 +111,10 @@ func main() {
 	rate = vegeta.Rate{Freq: args.durationInMin, Per: time.Second}
 	duration = time.Duration(args.durationInMin) * time.Minute
 	connAttacker = vegeta.Client(&http.Client{Transport: connection})
-	attacker := vegeta.NewAttacker(connAttacker)
+	attacker = vegeta.NewAttacker(connAttacker)
 
-	if err := TestCreateCluster(attacker); err != nil {
+	if err := tests.Run(attacker, metrics, rate, args.outputDirectory, duration); err != nil {
 		fmt.Printf("Error running create cluster load test: %v", err)
 		os.Exit(1)
 	}
-}
-
-func TestCreateCluster(attacker *vegeta.Attacker) error {
-	fakeClusterProps := map[string]string{
-		"fake_cluster": "true",
-	}
-	body, err := v1.NewCluster().
-		Name("load-test").
-		Properties(fakeClusterProps).
-		MultiAZ(false).Build()
-	if err != nil {
-		return err
-	}
-	var raw bytes.Buffer
-	err = v1.MarshalCluster(body, &raw)
-
-	targeter := vegeta.NewStaticTargeter(vegeta.Target{
-		Method: http.MethodGet,
-		URL:    helpers.ClustersEndpoint,
-		Body:   nil,
-	})
-	for res := range attacker.Attack(targeter, rate, duration, "Create") {
-		metrics.Add(res)
-	}
-
-	return writeTestReport("create-cluster-replort", &metrics)
-}
-
-func writeTestReport(name string, metrics *vegeta.Metrics) error {
-	reporter := vegeta.NewJSONReporter(metrics)
-	histoPath := filepath.Join(args.outputDirectory, fmt.Sprintf("%s.histo", name))
-	out, err := os.Create(histoPath)
-	if err != nil {
-		return fmt.Errorf("Error while report: %v", err)
-	}
-	reporter.Report(out)
-	log.Printf("Wrote load test histogram: %s\n", histoPath)
-	return nil
 }
