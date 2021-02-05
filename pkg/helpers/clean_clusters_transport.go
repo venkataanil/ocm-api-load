@@ -82,6 +82,7 @@ func (t *CleanClustersTransport) manipulateRequest(request *http.Request) (*http
 	}
 	log.Infof("%s %s: %s", request.Method, request.URL.String(), newBody)
 	request.Body = ioutil.NopCloser(strings.NewReader(newBody))
+	request.ContentLength = int64(len(newBody))
 	return request, true, nil
 }
 

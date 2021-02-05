@@ -13,6 +13,10 @@ import (
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 )
 
+const (
+	defaultAWSRegion = "us-east-1"
+)
+
 func TestListClusters(attacker *vegeta.Attacker,
 	metrics vegeta.Metrics,
 	rate vegeta.Pacer,
@@ -77,7 +81,9 @@ func generateCreateClusterTargeter() vegeta.Targeter {
 		body, err := v1.NewCluster().
 			Name(fmt.Sprintf("test-cluster-%d", idx)).
 			Properties(fakeClusterProps).
-			MultiAZ(false).Build()
+			MultiAZ(false).
+			Region(v1.NewCloudRegion().ID(defaultAWSRegion)).
+			Build()
 		if err != nil {
 			return err
 		}
@@ -87,8 +93,6 @@ func generateCreateClusterTargeter() vegeta.Targeter {
 		if err != nil {
 			return err
 		}
-
-		fmt.Printf("Body length: %d\n", raw.Len())
 
 		t.Method = http.MethodPost
 		t.URL = helpers.ClustersEndpoint

@@ -13,7 +13,7 @@ func Run(
 	outputDirectory string,
 	duration time.Duration) error {
 
-	return TestListClusters(attacker,
+	return TestCreateCluster(attacker,
 		metrics,
 		rate,
 		outputDirectory,
