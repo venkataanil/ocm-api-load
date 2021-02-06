@@ -46,7 +46,7 @@ func DeleteCluster(id string, deprovision bool, connection *sdk.Connection) {
 	log.Infof("Deleting cluster '%s'", id)
 	// Send the request to delete the cluster
 	response, err := connection.Delete().
-		Path(ClustersEndpoint+id).
+		Path(fmt.Sprintf("%s/%s", ClustersEndpoint, id)).
 		Parameter("deprovision", deprovision).
 		Send()
 	if err != nil {
