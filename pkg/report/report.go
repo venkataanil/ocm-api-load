@@ -16,7 +16,9 @@ func Write(name, outputDirectory string, metrics *vegeta.Metrics) error {
 	if err != nil {
 		return fmt.Errorf("Error while report: %v", err)
 	}
-	reporter.Report(out)
-	log.Printf("Wrote load test histogram: %s\n", histoPath)
+	if err := reporter.Report(out); err != nil {
+		return err
+	}
+	log.Printf("Wrote load test report to %s\n", histoPath)
 	return nil
 }
