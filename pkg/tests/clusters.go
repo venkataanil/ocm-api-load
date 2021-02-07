@@ -43,7 +43,8 @@ func TestListClusters(attacker *vegeta.Attacker,
 		Method: http.MethodGet,
 		URL:    helpers.ClustersEndpoint,
 	})
-	resFile, err := createFile("list-clusters-results", outputDirectory)
+	fileName := fmt.Sprintf("list-clusters-results-%s", time.Now().Local().Format("2006-01-02"))
+	resFile, err := createFile(fileName, outputDirectory)
 	if err != nil {
 		return err
 	}
@@ -65,7 +66,8 @@ func TestCreateCluster(attacker *vegeta.Attacker,
 	duration time.Duration) error {
 
 	targeter := generateCreateClusterTargeter()
-	resFile, err := createFile("create-cluster-results", outputDirectory)
+	fileName := fmt.Sprintf("create-cluster-results-%s", time.Now().Local().Format("2006-01-02"))
+	resFile, err := createFile(fileName, outputDirectory)
 	if err != nil {
 		return err
 	}
