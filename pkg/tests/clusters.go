@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/nimrodshn/cs-load-test/pkg/helpers"
 	"github.com/nimrodshn/cs-load-test/pkg/report"
+	"github.com/nimrodshn/cs-load-test/pkg/result"
 
 	v1 "github.com/openshift-online/ocm-sdk-go/clustersmgmt/v1"
 	vegeta "github.com/tsenart/vegeta/v12/lib"
@@ -39,10 +42,14 @@ func TestListClusters(attacker *vegeta.Attacker,
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: http.MethodGet,
 		URL:    helpers.ClustersEndpoint,
-		Body:   nil,
 	})
-	for res := range attacker.Attack(targeter, rate, duration, "Create") {
+	resFile, err := createFile("list-clusters-results", outputDirectory)
+	if err != nil {
+		return err
+	}
+	for res := range attacker.Attack(targeter, rate, duration, "List clusters") {
 		metrics.Add(res)
+		result.Write(res, resFile)
 	}
 	metrics.Close()
 
@@ -58,8 +65,14 @@ func TestCreateCluster(attacker *vegeta.Attacker,
 	duration time.Duration) error {
 
 	targeter := generateCreateClusterTargeter()
-	for res := range attacker.Attack(targeter, rate, duration, "Create") {
+	resFile, err := createFile("create-cluster-results", outputDirectory)
+	if err != nil {
+		return err
+	}
+	for res := range attacker.Attack(targeter, rate, duration, "Create cluster") {
 		metrics.Add(res)
+		result.Write(res, resFile)
+
 	}
 	metrics.Close()
 
@@ -102,4 +115,17 @@ func generateCreateClusterTargeter() vegeta.Targeter {
 		return nil
 	}
 	return targeter
+}
+
+func createFile(name, path string) (*os.File, error) {
+	resultPath := filepath.Join(path, fmt.Sprintf("%s.json", name))
+	out, err := os.Create(resultPath)
+	if err != nil {
+		// Silently ignore pre-existing file.
+		if err == os.ErrExist {
+			return out, nil
+		}
+		return nil, fmt.Errorf("Error while writing result: %v", err)
+	}
+	return out, nil
 }

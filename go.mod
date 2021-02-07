@@ -10,6 +10,7 @@ require (
 	github.com/tsenart/vegeta/v12 v12.8.4
 	github.com/zgalor/weberr v0.6.0
 	gitlab.cee.redhat.com/service/uhc-clusters-service v0.0.12-0.20210201130243-cb9e230afef4
+	k8s.io/apimachinery v0.19.0
 )
 
 replace (
