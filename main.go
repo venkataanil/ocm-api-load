@@ -18,9 +18,6 @@ var connAttacker func(*vegeta.Attacker)
 var rate vegeta.Rate
 var duration time.Duration
 
-var attacker *vegeta.Attacker
-var metrics vegeta.Metrics
-
 var args struct {
 	load            bool
 	tokenURL        string
@@ -107,8 +104,10 @@ func main() {
 		os.Exit(1)
 	}
 	defer helpers.Cleanup(connection)
+	attacker := new(vegeta.Attacker)
+	metrics := make(map[string]*vegeta.Metrics)
 
-	rate = vegeta.Rate{Freq: args.durationInMin, Per: time.Second}
+	rate = vegeta.Rate{Freq: args.rate, Per: time.Second}
 	duration = time.Duration(args.durationInMin) * time.Minute
 	connAttacker = vegeta.Client(&http.Client{Transport: connection})
 	attacker = vegeta.NewAttacker(connAttacker)

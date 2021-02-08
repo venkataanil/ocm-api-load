@@ -21,10 +21,11 @@ const (
 )
 
 func TestListClusters(attacker *vegeta.Attacker,
-	metrics vegeta.Metrics,
+	metrics map[string]*vegeta.Metrics,
 	rate vegeta.Pacer,
 	outputDirectory string,
 	duration time.Duration) error {
+	testName := "list-clusters"
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: http.MethodGet,
 		URL:    helpers.ClustersEndpoint,
@@ -34,38 +35,42 @@ func TestListClusters(attacker *vegeta.Attacker,
 	if err != nil {
 		return err
 	}
-	for res := range attacker.Attack(targeter, rate, duration, "List clusters") {
-		metrics.Add(res)
+
+	metrics[testName] = new(vegeta.Metrics)
+	for res := range attacker.Attack(targeter, rate, duration, testName) {
+		metrics[testName].Add(res)
 		result.Write(res, resFile)
 	}
-	metrics.Close()
+	metrics[testName].Close()
 
 	return report.Write("list-clusters-report",
 		outputDirectory,
-		&metrics)
+		metrics[testName])
 }
 
 func TestCreateCluster(attacker *vegeta.Attacker,
-	metrics vegeta.Metrics,
+	metrics map[string]*vegeta.Metrics,
 	rate vegeta.Pacer,
 	outputDirectory string,
 	duration time.Duration) error {
-
+	testName := "create-cluster"
 	targeter := generateCreateClusterTargeter()
 	fileName := fmt.Sprintf("create-cluster-results-%s", time.Now().Local().Format("2006-01-02"))
 	resFile, err := createFile(fileName, outputDirectory)
 	if err != nil {
 		return err
 	}
-	for res := range attacker.Attack(targeter, rate, duration, "Create cluster") {
-		metrics.Add(res)
+
+	metrics[testName] = new(vegeta.Metrics)
+	for res := range attacker.Attack(targeter, rate, duration, testName) {
+		metrics[testName].Add(res)
 		result.Write(res, resFile)
 	}
-	metrics.Close()
+	metrics[testName].Close()
 
 	return report.Write("create-cluster-report",
 		outputDirectory,
-		&metrics)
+		metrics[testName])
 }
 
 // Generates a targeter for the "POST /api/clusters_mgmt/v1/clusters" endpoint
