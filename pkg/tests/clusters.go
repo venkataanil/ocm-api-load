@@ -25,20 +25,6 @@ func TestListClusters(attacker *vegeta.Attacker,
 	rate vegeta.Pacer,
 	outputDirectory string,
 	duration time.Duration) error {
-
-	fakeClusterProps := map[string]string{
-		"fake_cluster": "true",
-	}
-	body, err := v1.NewCluster().
-		Name("load-test").
-		Properties(fakeClusterProps).
-		MultiAZ(false).Build()
-	if err != nil {
-		return err
-	}
-	var raw bytes.Buffer
-	err = v1.MarshalCluster(body, &raw)
-
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: http.MethodGet,
 		URL:    helpers.ClustersEndpoint,
@@ -74,7 +60,6 @@ func TestCreateCluster(attacker *vegeta.Attacker,
 	for res := range attacker.Attack(targeter, rate, duration, "Create cluster") {
 		metrics.Add(res)
 		result.Write(res, resFile)
-
 	}
 	metrics.Close()
 
