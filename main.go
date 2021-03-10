@@ -10,6 +10,7 @@ import (
 	"github.com/nimrodshn/cs-load-test/pkg/helpers"
 	"github.com/nimrodshn/cs-load-test/pkg/tests"
 	sdk "github.com/openshift-online/ocm-sdk-go"
+	uuid "github.com/satori/go.uuid"
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 )
 
@@ -91,9 +92,10 @@ func main() {
 	flag.Parse()
 
 	connection, err := sdk.NewConnectionBuilder().
-		Insecure(true).
-		URL(args.gatewayURL).
-		Client(args.clientID, args.clientSecret).
+		//Insecure(true).
+		//URL(args.gatewayURL).
+		//Client(args.clientID, args.clientSecret).
+		URL("https://api.integration.openshift.com").
 		Tokens(args.token).
 		TransportWrapper(func(wrapped http.RoundTripper) http.RoundTripper {
 			return &helpers.CleanClustersTransport{Wrapped: wrapped}
@@ -105,15 +107,38 @@ func main() {
 	}
 	defer helpers.Cleanup(connection)
 	attacker := new(vegeta.Attacker)
-	metrics := make(map[string]*vegeta.Metrics)
+	//metrics := make(map[string]*vegeta.Metrics)
 
 	rate = vegeta.Rate{Freq: args.rate, Per: time.Second}
 	duration = time.Duration(args.durationInMin) * time.Minute
 	connAttacker = vegeta.Client(&http.Client{Transport: connection})
 	attacker = vegeta.NewAttacker(connAttacker)
 
-	if err := tests.Run(attacker, metrics, rate, args.outputDirectory, duration); err != nil {
-		fmt.Printf("Error running create cluster load test: %v", err)
+	//if err := tests.Run(attacker, metrics, rate, args.outputDirectory, duration); err != nil {
+	//	fmt.Printf("Error running create cluster load test: %v", err)
+	//	os.Exit(1)
+	//}
+
+	// testId is an identifier used to associate all tests in this test suite with each
+	// other
+	testID := uuid.NewV4().String()
+
+	// TODO: Throw all tests into an array and call them using a loop
+	err = tests.TestSelfAccessToken(attacker, args.outputDirectory, duration, testID)
+	if err != nil {
+		fmt.Printf("Error running self-access-token test: %v", err)
+		os.Exit(1)
+	}
+
+	err = tests.TestListSubscriptions(attacker, args.outputDirectory, duration, testID)
+	if err != nil {
+		fmt.Printf("Error running list-subscriptions test: %v", err)
+		os.Exit(1)
+	}
+
+	err = tests.TestAccessReview(attacker, args.outputDirectory, duration, testID)
+	if err != nil {
+		fmt.Printf("Error running list-subscriptions test: %v", err)
 		os.Exit(1)
 	}
 }
