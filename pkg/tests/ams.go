@@ -109,10 +109,12 @@ func TestRegisterNewCluster(attacker *vegeta.Attacker, outputDirectory string, d
 	rate := vegeta.ConstantPacer{Freq: 1000, Per: time.Hour}
 	fileName := fmt.Sprintf("%s_%s", testID, testName)
 
+	// TODO: Generate a UUID for each Request
+	// TODO: The authorization_token should be real. Not sure what to set it as, though.
 	target := vegeta.Target{
 		Method: http.MethodPost,
-		URL:    helpers.AccessReviewEndpoint,
-		Body:   []byte("{'account_username': 'rhn-support-tiwillia', 'action': 'get', 'resource_type': 'Subscription'}"),
+		URL:    helpers.ClusterRegistrationEndpoint,
+		Body:   []byte("{'authorization_token': 'specify-me', 'cluster_id': 'c98550e5-1c9f-47bb-b46f-b2b6e7befeb3'}"),
 	}
 
 	targeter := vegeta.NewStaticTargeter(target)

@@ -141,4 +141,10 @@ func main() {
 		fmt.Printf("Error running list-subscriptions test: %v", err)
 		os.Exit(1)
 	}
+
+	err = tests.TestRegisterNewCluster(attacker, args.outputDirectory, duration, testID)
+	if err != nil {
+		fmt.Printf("Error running test-access-review: %v", err)
+		os.Exit(1)
+	}
 }
