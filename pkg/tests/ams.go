@@ -10,10 +10,19 @@ import (
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 )
 
-func TestSelfAccessToken(attacker *vegeta.Attacker, outputDirectory string, duration time.Duration, testID string) error {
+const (
+	defaultRate = 100
+)
+
+func TestSelfAccessToken(
+	attacker *vegeta.Attacker,
+	testID string,
+	metrics map[string]*vegeta.Metrics,
+	rate vegeta.Pacer,
+	outputDirectory string,
+	duration time.Duration) error {
 
 	testName := "self-access-token"
-	rate := vegeta.ConstantPacer{Freq: 1000, Per: time.Hour}
 	fileName := fmt.Sprintf("%s_%s", testID, testName)
 
 	target := vegeta.Target{
@@ -34,16 +43,22 @@ func TestSelfAccessToken(attacker *vegeta.Attacker, outputDirectory string, dura
 	fmt.Printf("Output File: %s/%s\n", outputDirectory, fileName)
 
 	for res := range attacker.Attack(targeter, rate, duration, testName) {
+		metrics[testName].Add(res)
 		result.Write(res, resultFile)
 	}
+	metrics[testName].Close()
 
 	return nil
 }
 
-func TestListSubscriptions(attacker *vegeta.Attacker, outputDirectory string, duration time.Duration, testID string) error {
+func TestListSubscriptions(attacker *vegeta.Attacker,
+	testID string,
+	metrics map[string]*vegeta.Metrics,
+	rate vegeta.Pacer,
+	outputDirectory string,
+	duration time.Duration) error {
 
 	testName := "list-subscriptions"
-	rate := vegeta.ConstantPacer{Freq: 2000, Per: time.Hour}
 	fileName := fmt.Sprintf("%s_%s", testID, testName)
 
 	target := vegeta.Target{
@@ -71,10 +86,14 @@ func TestListSubscriptions(attacker *vegeta.Attacker, outputDirectory string, du
 
 }
 
-func TestAccessReview(attacker *vegeta.Attacker, outputDirectory string, duration time.Duration, testID string) error {
+func TestAccessReview(attacker *vegeta.Attacker,
+	testID string,
+	metrics map[string]*vegeta.Metrics,
+	rate vegeta.Pacer,
+	outputDirectory string,
+	duration time.Duration) error {
 
 	testName := "access-review"
-	rate := vegeta.ConstantPacer{Freq: 100, Per: time.Second}
 	fileName := fmt.Sprintf("%s_%s", testID, testName)
 
 	target := vegeta.Target{
@@ -103,10 +122,14 @@ func TestAccessReview(attacker *vegeta.Attacker, outputDirectory string, duratio
 
 }
 
-func TestRegisterNewCluster(attacker *vegeta.Attacker, outputDirectory string, duration time.Duration, testID string) error {
+func TestRegisterNewCluster(attacker *vegeta.Attacker,
+	testID string,
+	metrics map[string]*vegeta.Metrics,
+	rate vegeta.Pacer,
+	outputDirectory string,
+	duration time.Duration) error {
 
 	testName := "new-cluster-registration"
-	rate := vegeta.ConstantPacer{Freq: 1000, Per: time.Hour}
 	fileName := fmt.Sprintf("%s_%s", testID, testName)
 
 	// TODO: Generate a UUID for each Request
