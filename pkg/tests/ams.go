@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -25,6 +26,8 @@ func TestSelfAccessToken(
 	testName := "self-access-token"
 	fileName := fmt.Sprintf("%s_%s", testID, testName)
 
+	log.Printf("Executing Test: %s", testName)
+
 	target := vegeta.Target{
 		Method: http.MethodPost,
 		URL:    helpers.SelfAccessTokenEndpoint,
@@ -39,14 +42,16 @@ func TestSelfAccessToken(
 
 	// Display some info about the test being ran to catch obvious issues
 	// and include context
-	fmt.Printf("Test: %s\n", testName)
-	fmt.Printf("Output File: %s/%s\n", outputDirectory, fileName)
+	log.Printf("Test: %s\n", testName)
+	log.Printf("Output File: %s/%s\n", outputDirectory, fileName)
+
+	metrics[testName] = new(vegeta.Metrics)
+	defer metrics[testName].Close()
 
 	for res := range attacker.Attack(targeter, rate, duration, testName) {
 		metrics[testName].Add(res)
 		result.Write(res, resultFile)
 	}
-	metrics[testName].Close()
 
 	return nil
 }
@@ -60,6 +65,8 @@ func TestListSubscriptions(attacker *vegeta.Attacker,
 
 	testName := "list-subscriptions"
 	fileName := fmt.Sprintf("%s_%s", testID, testName)
+
+	log.Printf("Executing Test: %s", testName)
 
 	target := vegeta.Target{
 		Method: http.MethodGet,
@@ -78,12 +85,14 @@ func TestListSubscriptions(attacker *vegeta.Attacker,
 	fmt.Printf("Test: %s\n", testName)
 	fmt.Printf("Output File: %s/%s\n", outputDirectory, fileName)
 
+	metrics[testName] = new(vegeta.Metrics)
+	defer metrics[testName].Close()
+
 	for res := range attacker.Attack(targeter, rate, duration, testName) {
 		result.Write(res, resultFile)
 	}
 
 	return nil
-
 }
 
 func TestAccessReview(attacker *vegeta.Attacker,
@@ -96,10 +105,12 @@ func TestAccessReview(attacker *vegeta.Attacker,
 	testName := "access-review"
 	fileName := fmt.Sprintf("%s_%s", testID, testName)
 
+	log.Printf("Executing Test: %s", testName)
+
 	target := vegeta.Target{
 		Method: http.MethodPost,
 		URL:    helpers.AccessReviewEndpoint,
-		Body:   []byte("{'account_username': 'rhn-support-tiwillia', 'action': 'get', 'resource_type': 'Subscription'}"),
+		Body:   []byte("{\"account_username\": \"rhn-support-tiwillia\", \"action\": \"get\", \"resource_type\": \"Subscription\"}"),
 	}
 
 	targeter := vegeta.NewStaticTargeter(target)
@@ -113,6 +124,9 @@ func TestAccessReview(attacker *vegeta.Attacker,
 	// and include contextq
 	fmt.Printf("Test: %s\n", testName)
 	fmt.Printf("Output File: %s/%s\n", outputDirectory, fileName)
+
+	metrics[testName] = new(vegeta.Metrics)
+	defer metrics[testName].Close()
 
 	for res := range attacker.Attack(targeter, rate, duration, testName) {
 		result.Write(res, resultFile)
@@ -132,12 +146,14 @@ func TestRegisterNewCluster(attacker *vegeta.Attacker,
 	testName := "new-cluster-registration"
 	fileName := fmt.Sprintf("%s_%s", testID, testName)
 
+	log.Printf("Executing Test: %s", testName)
+
 	// TODO: Generate a UUID for each Request
 	// TODO: The authorization_token should be real. Not sure what to set it as, though.
 	target := vegeta.Target{
 		Method: http.MethodPost,
 		URL:    helpers.ClusterRegistrationEndpoint,
-		Body:   []byte("{'authorization_token': 'specify-me', 'cluster_id': 'c98550e5-1c9f-47bb-b46f-b2b6e7befeb3'}"),
+		Body:   []byte("{\"authorization_token\": \"specify-me\", \"cluster_id\": \"c98550e5-1c9f-47bb-b46f-b2b6e7befeb3\"}"),
 	}
 
 	targeter := vegeta.NewStaticTargeter(target)
@@ -151,6 +167,9 @@ func TestRegisterNewCluster(attacker *vegeta.Attacker,
 	// and include contextq
 	fmt.Printf("Test: %s\n", testName)
 	fmt.Printf("Output File: %s/%s\n", outputDirectory, fileName)
+
+	metrics[testName] = new(vegeta.Metrics)
+	defer metrics[testName].Close()
 
 	for res := range attacker.Attack(targeter, rate, duration, testName) {
 		result.Write(res, resultFile)

@@ -76,7 +76,7 @@ func init() {
 	flag.IntVar(
 		&args.rate,
 		"rate",
-		100,
+		5,
 		"How many times (per second) should the endpoint be hit.",
 	)
 	flag.StringVar(
