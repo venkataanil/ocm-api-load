@@ -1,0 +1,48 @@
+---
+ocm-token: xxxXXXyyyYYYzzzZZZ           # Offline token for authentication.
+ocm-token-url: https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+gateway-url: http://localhost:8000  # Gateway URL.
+client:
+  - id: cloud-services              # OpenID client identifier.
+  - secret: "secure-secret"         # OpenID client secret.
+duration: 2
+output-path: "./results"
+rate: "5/s"
+test-id: new-test
+tests:
+  self-access-token:
+    rate: "1000/h"
+    duration: 1
+  list-subscriptions:
+    rate: "2000/h"
+    duration: 1
+  access-review:
+    rate: "100/s"
+    duration: 1
+  register-new-cluster:
+    rate: "1000/h"
+    duration: 1
+  register-existing-cluster:
+    rate: "25/s"
+    duration: 1
+  create-cluster:
+    rate: "10/s"
+    duration: 1
+  list-clusters:
+    rate: "10/s"
+    duration: 1
+  get-current-account:
+    rate: "6/m"
+    duration: 1
+  quota-cost:
+    rate: "1000/h"
+    duration: 1
+  resource-review:
+    rate: "2000/h"
+    duration: 1
+  cluster-authorizations:
+    rate: "2000/h"
+    duration: 1
+  self-terms-review:
+    rate: "10/s"
+    duration: 1
