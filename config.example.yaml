@@ -6,6 +6,7 @@ client:
   - id: cloud-services              # OpenID client identifier.
   - secret: "secure-secret"         # OpenID client secret.
 duration: 2
+cooldown: 10
 output-path: "./results"
 rate: "5/s"
 test-id: new-test
