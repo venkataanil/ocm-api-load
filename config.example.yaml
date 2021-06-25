@@ -5,6 +5,15 @@ gateway-url: http://localhost:8000  # Gateway URL.
 client:
   - id: cloud-services              # OpenID client identifier.
   - secret: "secure-secret"         # OpenID client secret.
+aws:
+  - region: "us-west-1"
+    access-key: "ASD7ASFET65FFGHDFFS"
+    secret-access-key: "fjhgsadf6#$!@%&/dfghdfgdsdf"
+    account-id: "123434565665"
+  - region: "us-west-2"
+    access-key: "ASD7ASFET65FFGHDFFS"
+    secret-access-key: "fjhgsadf6#$!@%&/dfghdfgdsdf"
+    account-id: "123434565665"
 duration: 2
 cooldown: 10
 output-path: "./results"
