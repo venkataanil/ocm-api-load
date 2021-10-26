@@ -56,3 +56,6 @@ tests:
   self-terms-review:
     rate: "10/s"
     duration: 1
+  certificates:
+    rate: "2/s"
+    duration: 1
