@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"crypto/tls"
+	"net/http"
 
 	"github.com/cloud-bulldozer/ocm-api-load/pkg/logging"
 	opensearch "github.com/opensearch-project/opensearch-go"
@@ -34,6 +36,9 @@ func newClient(ctx context.Context, logger logging.Logger) (*opensearch.Client, 
 	logger.Info(ctx, "Building ES configuration")
 	logger.Debug(ctx, "Using server: %s", viper.GetString("elastic.server"))
 	cfg := opensearch.Config{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: viper.GetBool("elastic.insecure-skip-verify")},
+		},
 		Addresses: []string{
 			viper.GetString("elastic.server"),
 		},
