@@ -19,6 +19,7 @@ elastic:
   user: "user"
   password: "password"
   index: "es-index"
+  insecure-skip-verify: true
 duration: 2
 cooldown: 10
 output-path: "./results"
