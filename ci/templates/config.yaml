@@ -1,0 +1,52 @@
+ocm-token: $OCM_TOKEN
+ocm-token-url: $OCM_TOKEN_URL
+gateway-url: $GATEWAY_URL
+aws:
+  - region: "$AWS_DEFAULT_REGION"
+    access-key: "$AWS_ACCESS_KEY_ID"
+    secret-access-key: "$AWS_SECRET_ACCESS_KEY"
+    account-id: "$AWS_ACCOUNT_ID"
+elastic:
+    server: "$ES_SERVER"
+    index: "$ES_INDEX"
+    insecure-skip-verify: true
+duration: $DURATION
+cooldown: $COOLDOWN
+output-path: "/tmp/$UUID/results"
+rate: "$RATE"
+test-id: $UUID
+ramp-type: $RAMP_TYPE
+start-rate: $RAMP_START_RATE
+end-rate: $RAMP_END_RATE
+ramp-steps: $RAMP_STEPS
+sleep: $SLEEP
+tests:
+  self-access-token:
+    rate: "$SELF_ACCESS_TOKEN_RATE"
+  list-subscriptions:
+    rate: "$LIST_SUBSCRIPTIONS_RATE"
+  access-review:
+    rate: "$ACCESS_REVIEW_RATE"
+  register-new-cluster:
+    rate: "$RATE"
+  register-existing-cluster:
+    rate: "$REGISTER_EXISTING_CLUSTER_RATE"
+  create-cluster:
+    rate: "$CREATE_CLUSTER_DURATION"
+  list-clusters:
+    rate: "$LIST_CLUSTERS_RATE"
+  get-current-account:
+    duration: $GET_CURRENT_ACCOUNT_DURATION
+  quota-cost:
+    rate: "$RATE"
+  resource-review:
+    rate: "$RESOURCE_REVIEW_RATE"
+  cluster-authorizations:
+    rate: "$CLUSTER_AUTHORIZATIONS_RATE"
+    duration: $CLUSTER_AUTHORIZATIONS_DURATION
+  self-terms-review:
+    rate: "$SELF_TERMS_RATE"
+    duration: $SELF_TERMS_DURATION
+  certificates:
+    rate: "$CERTIFICATES_RATE"
+    duration: $CERTIFICATES_DURATION
