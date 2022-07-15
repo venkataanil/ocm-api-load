@@ -6,18 +6,18 @@ savefile = sys.argv[2]
 printfile = sys.argv[3]
 
 
-def has_body(item1):
+def has_body(item):
     hasbody = ""
-    if item1["body"]:
+    if item["body"]:
         hasbody = "True"
     else:
         hasbody = "False"
     return hasbody
 
 
-def has_error(item2):
+def has_error(item):
     haserror = ""
-    if 200 <= (int(item2["code"])) <= 299:
+    if 200 <= (int(item["code"])) <= 299:
         haserror = "False"
     else:
         haserror = "True"
