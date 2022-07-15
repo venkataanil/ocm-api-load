@@ -24,7 +24,8 @@ def payload_constructor(data, action):
 
 # Create the client with SSL/TLS enabled, but hostname verification disabled.
 client = OpenSearch(
-    hosts=[{'host': 'search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com', 'port': 443}],
+    hosts=[{'host': 'search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com',
+            'port': 443}],
     http_compress=True,  # enables gzip compression for request bodies
     # http_auth = ('<username>', '<password>'),
     use_ssl=True,
@@ -61,4 +62,5 @@ payload = payload_constructor(data, action)
 if not payload:
     print("Successful")
 else:
-    response = client.bulk(body=payload_constructor(data, action), index="ocm-api-data")
+    response = client.bulk(body=payload_constructor(data, action),
+                           index="ocm-api-data")
