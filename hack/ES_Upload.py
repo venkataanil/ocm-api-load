@@ -15,7 +15,7 @@ def payload_constructor(data, action):
         payload_string += this_line
         count += 1
         if count == 100:
-            response = client.bulk(body=payload_string, index="ocm-api-data")
+            client.bulk(body=payload_string, index="ocm-api-data")
             count = 0
             payload_string = ""
 
