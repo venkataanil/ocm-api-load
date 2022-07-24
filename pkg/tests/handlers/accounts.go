@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"strings"
 	"time"
@@ -226,12 +227,26 @@ func TestClusterAuthorizations(ctx context.Context, options *types.TestOptions) 
 	return nil
 }
 
+func randomizeResourceName() string {
+	resourcenamelist := helpers.AWSResources
+	resourceName := resourcenamelist[rand.Intn(len(resourcenamelist))]
+	return resourceName
+}
+
+func randomizeCount() int {
+	min_count := helpers.MinClusterCount
+	max_count := helpers.MaxClusterCount
+	count := min_count + rand.Intn(max_count-min_count)
+	return count
+}
+
 func clusterAuthorizationsBody(ctx context.Context, clusterID string, options *types.TestOptions) []byte {
+	rand.Seed(time.Now().UnixNano())
 	buff := &bytes.Buffer{}
 	reservedResource := v1.NewReservedResource().
-		ResourceName(helpers.M5XLargeResource).
+		ResourceName(randomizeResourceName()).
 		ResourceType(helpers.AWSComputeNodeResourceType).
-		Count(helpers.DefaultClusterCount).
+		Count(randomizeCount()).
 		BillingModel(helpers.StandardBillingModel)
 
 	clusterAuthReq, err := v1.NewClusterAuthorizationRequest().

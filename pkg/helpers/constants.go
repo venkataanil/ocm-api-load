@@ -5,9 +5,9 @@ const (
 	DefaultAWSRegion = "us-east-1"
 
 	// Cluster Auhtorization
-	M5XLargeResource           = "m5.xlarge"
 	AWSComputeNodeResourceType = "compute.node.aws"
-	DefaultClusterCount        = 4
+	MinClusterCount            = 4
+	MaxClusterCount            = 10
 	StandardBillingModel       = "standard"
 	OsdProductID               = "osd"
 	AWSCloudProvider           = "aws"
@@ -16,4 +16,8 @@ const (
 	ClusterAuthReserve         = true
 	ClusterAuthBYOC            = true
 	SingleAvailabilityZone     = "single"
+)
+
+var (
+	AWSResources = [5]string{"m3.2xlarge", "m4.large", "m4.xlarge", "m5.large", "m5.xlarge"}
 )
