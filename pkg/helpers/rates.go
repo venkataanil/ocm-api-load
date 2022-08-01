@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -14,7 +15,7 @@ import (
 // to reuse the same method, but to match and correctly
 // generate the rate we decided to use the same function.
 // https://github.com/tsenart/vegeta/blob/d73edf2bc2663d83848da2a97a8401a7ed1440bc/flags.go#L68
-func ParseRate(rate string) (vegeta.Rate, error) {
+func ParseRate(rate string, concurrentConnections int) (vegeta.Rate, error) {
 	if rate == "infinity" {
 		return vegeta.Rate{}, nil
 	}
@@ -34,6 +35,11 @@ func ParseRate(rate string) (vegeta.Rate, error) {
 
 	if f == 0 {
 		return vegeta.Rate{}, nil
+	}
+
+	f = int(math.Round(float64(f) / float64(concurrentConnections)))
+	if f == 0 {
+		f = 1
 	}
 
 	switch ps[1] {

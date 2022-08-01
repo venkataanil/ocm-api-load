@@ -8,6 +8,7 @@ import (
 	"github.com/cloud-bulldozer/ocm-api-load/pkg/cmd"
 	"github.com/cloud-bulldozer/ocm-api-load/pkg/helpers"
 	"github.com/cloud-bulldozer/ocm-api-load/pkg/logging"
+	"github.com/cloud-bulldozer/ocm-api-load/pkg/ocm"
 	"github.com/cloud-bulldozer/ocm-api-load/pkg/tests"
 	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/cobra"
@@ -153,11 +154,11 @@ func configES() error {
 			return fmt.Errorf("ES configuration needs an index set `elastic-index` flag")
 		}
 		config := map[string]interface{}{
-			"server":   viper.GetString("elastic-server"),
-			"user":     viper.GetString("elastic-user"),
-			"insecure-skip-verify":     viper.GetBool("elastic-insecure-skip-verify"),
-			"password": viper.GetString("elastic-password"),
-			"index":    viper.GetString("elastic-index"),
+			"server":               viper.GetString("elastic-server"),
+			"user":                 viper.GetString("elastic-user"),
+			"insecure-skip-verify": viper.GetBool("elastic-insecure-skip-verify"),
+			"password":             viper.GetString("elastic-password"),
+			"index":                viper.GetString("elastic-index"),
 		}
 		viper.Set("elastic", config)
 	}
@@ -173,8 +174,8 @@ func run(cmd *cobra.Command, args []string) error {
 		os.Exit(1)
 	}
 
-	if viper.GetString("ocm-token") == "" {
-		logger.Fatal(cmd.Context(), "ocm-token is a necessary configuration")
+	if viper.Sub("ocm") == nil {
+		logger.Fatal(cmd.Context(), "ocm is a necessary configuration")
 	}
 	err = helpers.CreateFolder(cmd.Context(), viper.GetString("output-path"), logger)
 	if err != nil {
@@ -182,14 +183,9 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 	logger.Info(cmd.Context(), "Using output directory: %s", viper.GetString("output-path"))
 
-	connection, err := helpers.BuildConnection(cmd.Context(), viper.GetString("gateway-url"),
-		viper.GetString("client.id"),
-		viper.GetString("client.secret"),
-		viper.GetString("ocm-token"),
-		logger,
-	)
+	connections, err := ocm.BuildConnections(cmd.Context(), logger)
 	if err != nil {
-		logger.Fatal(cmd.Context(), "creating api connection: %v", err)
+		return err
 	}
 
 	configTests()
@@ -208,7 +204,7 @@ func run(cmd *cobra.Command, args []string) error {
 		viper.GetString("test-id"),
 		viper.GetString("output-path"),
 		logger,
-		connection,
+		connections,
 	)
 
 	if err := runner.Run(cmd.Context()); err != nil {
