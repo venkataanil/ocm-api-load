@@ -7,11 +7,13 @@ require (
 	github.com/opensearch-project/opensearch-go v1.1.0
 	github.com/openshift-online/ocm-sdk-go v0.1.252
 	github.com/satori/go.uuid v1.2.0
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.10.1
 	github.com/tsenart/vegeta/v12 v12.8.4
 	github.com/zgalor/weberr v0.7.0
 )
+
+require github.com/google/go-cmp v0.5.8 // indirect
 
 require (
 	github.com/aymerick/douceur v0.2.0 // indirect
