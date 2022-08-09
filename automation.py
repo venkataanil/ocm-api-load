@@ -12,6 +12,7 @@ import requests
 import subprocess
 import sys
 import tarfile
+import stat
 from sqlalchemy import create_engine
 from docx import Document
 from docx.shared import Inches
@@ -29,17 +30,19 @@ def generate_graphs(directory):
     # ignoring dirname since we don't need it in this implementation
     for root, _, files in os.walk(directory):
         for filename in files:
-            regex = re.compile(r'[\w-]+_([\w-]+).(\w.+)')
+            regex = re.compile(r'[\w-]+_([\w-]+)_([0-9]+).(\w.+)')
             matches = regex.match(filename)
 
             if 'summaries' not in root and regex.match(filename) and \
-                    matches.group(2) == 'json':
+                    matches.group(3) == 'json':
                 logger.info(f'Generating graph for: {matches.group(1)}')
 
                 # Initializes database for current file in current directory
                 # Read by 20000 chunks
                 disk_engine = create_engine(
-                    'sqlite:///{}/{}.db'.format(root, matches.group(1)))
+                    'sqlite:///{}/{}_{}.db'.format(root,
+                                                   matches.group(1),
+                                                   matches.group(2)))
 
                 j = 0
                 index_start = 1
@@ -88,6 +91,9 @@ def generate_graphs(directory):
                                                   'symbol': 'diamond-tall'}}}]
                     }]
                 }]
+                y = 0
+                if matches.group(1) in summaries.keys():
+                    y = summaries[matches.group(1)]['99th']/1e6
 
                 layout = {
                     'title': '<b>Latency per Request: {}</b>'.format(
@@ -105,8 +111,8 @@ def generate_graphs(directory):
                                 'x0': 0,
                                 'x1': 1,
                                 'xref': 'x domain',
-                                'y0': summaries[matches.group(1)]['99th']/1e6,
-                                'y1': summaries[matches.group(1)]['99th']/1e6,
+                                'y0': y,
+                                'y1': y,
                                 'yref': 'y'},
                                {'fillcolor': '#FF0000',
                                 'line': {'color': '#FF0000',
@@ -134,23 +140,24 @@ def generate_graphs(directory):
                 fig_dict = {'data': data, 'layout': layout}
 
                 pio.write_image(fig_dict,
-                                root + '/' + matches.group(1) + ".png",
+                                root + '/' + matches.group(1) + matches.group(2) + ".png",
                                 engine="kaleido",
                                 width=1600,
                                 height=900,
                                 validate=False)
                 graphs[matches.group(1)] = os.path.join(root,
                                                         matches.group(1),
+                                                        matches.group(2),
                                                         ".png")
                 logger.info(f'Graph saved to: {graphs[matches.group(1)]}')
-                os.remove('{}/{}.db'.format(root, matches.group(1)))
+                os.remove('{}/{}_{}.db'.format(root, matches.group(1), matches.group(2)))
     return graphs
 
 
 def show_graphs(directory, filename):
-    regex = re.compile(r'(.*/)?[\w-]+_([\w-]+).(\w.+)')
+    regex = re.compile(r'(.*/)?[\w-]+_([\w-]+)_([0-9]+).(\w.+)')
     matches = regex.match(filename)
-    if regex.match(filename) and matches.group(3) == 'json':
+    if regex.match(filename) and matches.group(4) == 'json':
         # Initializes database for current file in current directory
         # Read by 20000 chunks
         disk_engine = create_engine(
@@ -224,9 +231,9 @@ def show_graphs(directory, filename):
 
 
 def cma_graph(directory, filename):
-    regex = re.compile(r'(.*/)?[\w-]+_([\w-]+).(\w.+)')
+    regex = re.compile(r'(.*/)?[\w-]+_([\w-]+)_([0-9]+).(\w.+)')
     matches = regex.match(filename)
-    if regex.match(filename) and matches.group(3) == 'json':
+    if regex.match(filename) and matches.group(4) == 'json':
         # Initializes database for current file in current directory
         # Read by 20000 chunks
         disk_engine = create_engine(
@@ -285,9 +292,9 @@ def cma_graph(directory, filename):
 
 
 def count_graph(directory, filename):
-    regex = re.compile(r'(.*/)?[\w-]+_([\w-]+).(\w.+)')
+    regex = re.compile(r'(.*/)?[\w-]+_([\w-]+)_([0-9]+).(\w.+)')
     matches = regex.match(filename)
-    if regex.match(filename) and matches.group(3) == 'json':
+    if regex.match(filename) and matches.group(4) == 'json':
         # Initializes database for current file in current directory
         # Read by 20000 chunks
         disk_engine = create_engine(
@@ -345,26 +352,22 @@ def count_graph(directory, filename):
 
 
 def generate_summaries(directory):
-    try:
-        os.stat('{}/summaries'.format(directory))
-    except FileNotFoundError:
+    mode = os.lstat('{}/summaries'.format(directory)).st_mode
+    if not stat.S_ISDIR(mode):
         os.mkdir('{}/summaries'.format(directory))
-    else:
-        print(Exception())
-        logger.error('Error with summaries folder.')
-        exit(1)
 
     for root, _, files in os.walk(directory):
         for filename in files:
-            regex = re.compile(r'([\w-]+)_([\w-]+).(\w.+)')
+            regex = re.compile(r'([\w-]+)_([\w-]+)_([0-9]+).(\w.+)')
             matches = regex.match(filename)
 
             if 'summaries' not in root and regex.match(filename) and \
-                    matches.group(3) == 'json':
-                _summary_name = "{}/summaries/{}_{}-summary.json".format(
+                    matches.group(4) == 'json':
+                _summary_name = "{}/summaries/{}_{}_{}-summary.json".format(
                                 directory,
                                 matches.group(1),
-                                matches.group(2))
+                                matches.group(2),
+                                matches.group(3))
                 logger.info(f'Generating summary for: {matches.group(2)}')
                 subprocess.run(["vegeta", "report", "--type", "json",
                                 "--output",
@@ -380,7 +383,7 @@ def read_summaries(directory):
     for root, _, files in os.walk(directory):
         for filename in files:
             regex = re.compile(
-                r'[\w-]+_([\w-]+)-summary.(\w.+)')
+                r'[\w-]+_([\w-]+)_([\d]+)-summary.(\w.+)')
             matches = regex.match(filename)
 
             if 'summaries' in root and regex.match(filename) and \
@@ -476,10 +479,10 @@ def upload_files(args):
     tar = tarfile.open(os.path.join(args.directory, tar_name), "w|gz")
     for root, _, files in os.walk(args.directory):
         for filename in files:
-            regex = re.compile(r'([\w-]+)_([\w-]+).(\w.+)')
+            regex = re.compile(r'([\w-]+)_([\w-]+)_([0-9]+).(\w.+)')
             matches = regex.match(filename)
             if 'summaries' not in root and regex.match(filename) and \
-                    matches.group(3) == 'json':
+                    matches.group(4) == 'json':
                 uuid = matches.group(1)
                 tar.add(os.path.join(args.directory, filename),
                         arcname='requests/{}'.format(filename))
@@ -570,10 +573,10 @@ def push_to_es(args):
 
     for root, _, files in os.walk(args.directory):
         for filename in files:
-            regex = re.compile(r'([\w-]+)_([\w-]+).(\w.+)')
+            regex = re.compile(r'([\w-]+)_([\w-]+)_([0-9]+).(\w.+)')
             matches = regex.match(filename)
             if 'summaries' not in root and regex.match(filename) and \
-                    matches.group(3) == 'json':
+                    matches.group(4) == 'json':
                 test_id = matches.group(1)
                 test_name = matches.group(2)
 
