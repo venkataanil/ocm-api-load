@@ -8,7 +8,7 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     labels:
       - "golang"
       - "dependencies"
@@ -16,7 +16,7 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     labels:
       - "pyhton"
       - "dependencies"
@@ -25,7 +25,7 @@ updates:
     directory: "/"
     schedule:
       # Check for updates to GitHub Actions every weekday
-      interval: "weekly"
+      interval: "monthly"
     labels:
       - "github-actions"
       - "dependencies"
