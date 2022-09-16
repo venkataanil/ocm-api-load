@@ -20,6 +20,7 @@ package logging
 
 import (
 	"context"
+	"io"
 )
 
 // Logger is the interface that must be implemented by objects that are used for logging by the
@@ -62,4 +63,6 @@ type Logger interface {
 	// given format and arguments; and then executes an os.Exit(1)
 	// Fatal level is always enabled
 	Fatal(ctx context.Context, format string, args ...interface{})
+
+	SetOutput(ctx context.Context, w io.Writer)
 }

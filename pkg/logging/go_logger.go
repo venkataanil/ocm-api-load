@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"io"
 )
 
 // GoLoggerBuilder contains the configuration and logic needed to build a logger that uses the Go
@@ -167,4 +168,8 @@ func (l *GoLogger) Fatal(ctx context.Context, format string, args ...interface{}
 	// #nosec G104
 	log.Output(1, msg)
 	os.Exit(1)
+}
+
+func (l *GoLogger) SetOutput(ctx context.Context, w io.Writer) {
+        log.SetOutput(w)
 }

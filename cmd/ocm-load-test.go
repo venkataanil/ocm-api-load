@@ -176,11 +176,12 @@ func run(cmd *cobra.Command, args []string) error {
 		os.Exit(1)
 	}
 	if viper.GetString("log-file") != ""{
-		logFile, err := os.OpenFile("log-file", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		logFile, err := os.OpenFile(viper.GetString("log-file"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 		if err != nil {
 			logger.Fatal(cmd.Context(), "Error opening log-file for writing: %v\n", err)
 		}
-		logger.SetOutput(logFile)
+		logger.SetOutput(cmd.Context(), logFile)
+		defer logFile.Close()
 	}
 
 	if viper.Sub("ocm") == nil {

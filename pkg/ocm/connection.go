@@ -49,7 +49,7 @@ func BuildConnections(ctx context.Context, logger logging.Logger) ([]*sdk.Connec
 	connections := make([]*sdk.Connection, 0)
 	auths := viper.GetStringMap("ocm")["auths"].([]interface{})
 	for _, a := range auths {
-		m := a.(map[interface{}]interface{})
+		m := a.(map[string]interface{})
 		token, ok := m["token"]
 		if !ok {
 			token = ""
