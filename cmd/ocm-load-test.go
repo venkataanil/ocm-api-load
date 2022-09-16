@@ -53,6 +53,7 @@ func init() {
 	rootCmd.Flags().BoolP("verbose", "v", false, "set this flag to activate verbose logging.")
 	rootCmd.Flags().Int("cooldown", 10, "Cooldown time between tests in seconds.")
 	rootCmd.Flags().StringSlice("test-names", []string{}, "Names for the tests to be run.")
+	rootCmd.Flags().String("log-file", "", "Log file for output.")
 	//Elasticsearch Flags
 	rootCmd.Flags().String("elastic-server", "", "Elasticsearch cluster URL")
 	rootCmd.Flags().String("elastic-user", "", "Elasticsearch User for authentication")
@@ -166,12 +167,20 @@ func configES() error {
 }
 
 func run(cmd *cobra.Command, args []string) error {
+
 	logger, err := logging.NewGoLoggerBuilder().
 		Debug(viper.GetBool("verbose")).
 		Build()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Can't build logger: %v\n", err)
 		os.Exit(1)
+	}
+	if viper.GetString("log-file") != ""{
+		logFile, err := os.OpenFile("log-file", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			logger.Fatal(cmd.Context(), "Error opening log-file for writing: %v\n", err)
+		}
+		logger.SetOutput(logFile)
 	}
 
 	if viper.Sub("ocm") == nil {
