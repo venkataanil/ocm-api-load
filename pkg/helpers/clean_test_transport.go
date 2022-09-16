@@ -43,6 +43,9 @@ func (t *CleanTestTransport) RoundTrip(request *http.Request) (*http.Response, e
 	if t.isClusterAuthorization(request) && response.StatusCode == 200 {
 		response = t.addToArchive(request, response, false)
 	}
+	if t.isServicesCreate(request) && response.StatusCode == 201 {
+		response = t.addToServiceCleanup(request, response)
+	}
 	return response, err
 }
 
@@ -209,4 +212,48 @@ func addTestProperties(body string) (string, error) {
 		return "", err
 	}
 	return string(result), nil
+}
+
+func (t *CleanTestTransport) isServicesCreate(request *http.Request) bool {
+	url := strings.TrimSuffix(request.URL.String(), "/")
+	return request.Method == "POST" &&
+		strings.Contains(url, "service_mgmt") &&
+		strings.HasSuffix(url, "/services") && request.Body != nil
+}
+
+func (t *CleanTestTransport) addToServiceCleanup(request *http.Request, response *http.Response) *http.Response {
+	ctx := request.Context()
+
+	var service map[string]interface{}
+	err := json.NewDecoder(response.Body).Decode(&service)
+	if err != nil {
+		t.Logger.Error(ctx, "Failed to unmarshal body of response for request %s %s: %v", request.Method,
+			request.URL.String(), err)
+		return response
+	}
+	serviceID, ok := service["id"]
+	if !ok {
+		t.Logger.Error(ctx, "Failed to get service ID from body of response for request %s %s: %v", request.Method,
+			request.URL.String(), err)
+		return response
+	}
+	markServiceForCleanup(ctx, serviceID.(string), t.Logger)
+
+	body, err := json.Marshal(service)
+	if err != nil {
+		t.Logger.Error(ctx, "Failed to marshall body of response for request %s %s: %v", request.Method,
+			request.URL.String(), err)
+		return response
+	}
+	response.Body = ioutil.NopCloser(strings.NewReader(string(body)))
+	return response
+}
+
+func markServiceForCleanup(ctx context.Context, serviceID string, logger logging.Logger) {
+	logger.Info(ctx, "Marking service '%s' for deleting", serviceID)
+	createdServiceIDs = append(createdServiceIDs, serviceID)
+}
+
+func markFailedServiceCleanup(serviceID string) {
+	failedDeletedServicesIDs = append(failedDeletedServicesIDs, serviceID)
 }

@@ -52,12 +52,12 @@ func (r *Runner) Run(ctx context.Context) error {
 
 	var wg sync.WaitGroup
 	concurrentConnections := len(r.connections)
-	wg.Add(concurrentConnections)
-
 	for i, t := range tests {
 		// Check if the test is set to run
 		if !tests_conf.InConfig(t.TestName) && !tests_conf.InConfig("all") {
 			continue
+		} else {
+			wg.Add(concurrentConnections)
 		}
 
 		for i, conn := range r.connections {

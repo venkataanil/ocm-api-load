@@ -84,6 +84,9 @@ path as your binary, it will be autodetected and you could run by just calling i
 | cluster-authorizations | /api/accounts_mgmt/v1/cluster_authorizations | POST |
 | self-terms-review | /api/authorizations/v1/self_terms_review | POST |
 | certificates | /api/accounts_mgmt/v1/certificates | POST |
+| create-services | /api/service_mgmt/v1/services | POST |
+| get-services | /api/service_mgmt/v1/services | GET |
+| patch-services | /api/service_mgmt/v1/services/{srvcId} | PATCH |
 |--|--|--|
 
 ## Config file
@@ -101,6 +104,7 @@ path as your binary, it will be autodetected and you could run by just calling i
   - access-key: AWS access key
   - secret-access-key: AWS access secret
   - account-id: AWS Account ID, is the 12-digit account number
+  - account-name: AWS Account Name to be used in the requests
 - output-path: Path to output results.
 - duration: Duration of each individual run in minutes. (default 1)
 - cooldown: Cooldown time between tests in seconds. (default 10 s)
