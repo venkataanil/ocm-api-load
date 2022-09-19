@@ -167,22 +167,26 @@ func configES() error {
 }
 
 func run(cmd *cobra.Command, args []string) error {
-
 	logger, err := logging.NewGoLoggerBuilder().
-		Debug(viper.GetBool("verbose")).
-		Build()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Can't build logger: %v\n", err)
-		os.Exit(1)
-	}
-	if viper.GetString("log-file") != ""{
-		logFile, err := os.OpenFile(viper.GetString("log-file"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-		if err != nil {
-			logger.Fatal(cmd.Context(), "Error opening log-file for writing: %v\n", err)
-		}
-		logger.SetOutput(cmd.Context(), logFile)
-		defer logFile.Close()
-	}
+                Debug(viper.GetBool("verbose")).
+                LogFile(viper.GetString("log-file")).
+                Build()
+        if err != nil {
+                fmt.Fprintf(os.Stderr, "Can't build logger: %v\n", err)
+                os.Exit(1)
+        }
+//      if viper.GetString("log-file") != ""{
+//              logger.SetOutput(cmd.Context(), viper.GetString("log-file"))
+//              logFile, err := os.OpenFile(viper.GetString("log-file"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+//              if err != nil {
+//                      logger.Fatal(cmd.Context(), "Error opening log-file for writing: %v\n", err)
+//              }
+//              logger.SetOutput(cmd.Context(), logFile)
+//              defer logFile.Close()
+//      }
+        logger.Info(cmd.Context(), "foo")
+        logger.Fatal(cmd.Context(), "BOOM")
+
 
 	if viper.Sub("ocm") == nil {
 		logger.Fatal(cmd.Context(), "ocm is a necessary configuration")

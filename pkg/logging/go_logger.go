@@ -34,6 +34,7 @@ type GoLoggerBuilder struct {
 	infoEnabled  bool
 	warnEnabled  bool
 	errorEnabled bool
+	logFile string
 }
 
 // GoLogger is a logger that uses the Go `log` package.
@@ -42,6 +43,7 @@ type GoLogger struct {
 	infoEnabled  bool
 	warnEnabled  bool
 	errorEnabled bool
+	logFile string
 }
 
 // NewGoLoggerBuilder creates a builder that knows how to build a logger that uses the Go `log`
@@ -55,6 +57,8 @@ func NewGoLoggerBuilder() *GoLoggerBuilder {
 	builder.infoEnabled = true
 	builder.warnEnabled = true
 	builder.errorEnabled = true
+        builder.logFile = ""
+
 
 	return builder
 }
@@ -83,6 +87,12 @@ func (b *GoLoggerBuilder) Error(flag bool) *GoLoggerBuilder {
 	return b
 }
 
+// Set log file location
+func (b *GoLoggerBuilder) LogFile(flag string) *GoLoggerBuilder {
+        b.logFile = flag
+        return b
+}
+
 // Build creates a new logger using the configuration stored in the builder.
 func (b *GoLoggerBuilder) Build() (logger *GoLogger, err error) {
 	// Allocate and populate the object:
@@ -91,6 +101,17 @@ func (b *GoLoggerBuilder) Build() (logger *GoLogger, err error) {
 	logger.infoEnabled = b.infoEnabled
 	logger.warnEnabled = b.warnEnabled
 	logger.errorEnabled = b.errorEnabled
+
+	if b.logFile != "" {
+                log.Output(1,"here")
+                lFile, err := os.OpenFile(b.logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+                if err != nil {
+                        log.Fatal("Error opening log-file for writing: %v\n", err)
+                }
+                logger.SetOutput(lFile)
+                defer lFile.Close()
+        }
+        logger.Info(context.TODO(), "foo")
 
 	return
 }
@@ -113,6 +134,11 @@ func (l *GoLogger) WarnEnabled() bool {
 // ErrorEnabled returns true iff the error level is enabled.
 func (l *GoLogger) ErrorEnabled() bool {
 	return l.errorEnabled
+}
+
+// LogFileEnabled returns the name of the log file or ""
+func (l *GoLogger) LogFileEnabled() string {
+        return l.logFile
 }
 
 // Debug sends to the log a debug message formatted using the fmt.Sprintf function and the given
@@ -170,6 +196,6 @@ func (l *GoLogger) Fatal(ctx context.Context, format string, args ...interface{}
 	os.Exit(1)
 }
 
-func (l *GoLogger) SetOutput(ctx context.Context, w io.Writer) {
+func (l *GoLogger) SetOutput(w io.Writer) {
         log.SetOutput(w)
 }
