@@ -64,5 +64,9 @@ type Logger interface {
 	// Fatal level is always enabled
 	Fatal(ctx context.Context, format string, args ...interface{})
 
+	// Set the output of the logger to a file
 	SetOutput(w io.Writer)
+
+	// Closing the file that is used for logging
+	DeferClose()
 }

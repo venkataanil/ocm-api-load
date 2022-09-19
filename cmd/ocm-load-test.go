@@ -175,18 +175,6 @@ func run(cmd *cobra.Command, args []string) error {
                 fmt.Fprintf(os.Stderr, "Can't build logger: %v\n", err)
                 os.Exit(1)
         }
-//      if viper.GetString("log-file") != ""{
-//              logger.SetOutput(cmd.Context(), viper.GetString("log-file"))
-//              logFile, err := os.OpenFile(viper.GetString("log-file"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-//              if err != nil {
-//                      logger.Fatal(cmd.Context(), "Error opening log-file for writing: %v\n", err)
-//              }
-//              logger.SetOutput(cmd.Context(), logFile)
-//              defer logFile.Close()
-//      }
-        logger.Info(cmd.Context(), "foo")
-        logger.Fatal(cmd.Context(), "BOOM")
-
 
 	if viper.Sub("ocm") == nil {
 		logger.Fatal(cmd.Context(), "ocm is a necessary configuration")
@@ -224,6 +212,8 @@ func run(cmd *cobra.Command, args []string) error {
 	if err := runner.Run(cmd.Context()); err != nil {
 		logger.Fatal(cmd.Context(), "running load test: %v", err)
 	}
+
+	logger.DeferClose()
 
 	return nil
 }

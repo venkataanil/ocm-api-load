@@ -43,7 +43,9 @@ type GoLogger struct {
 	infoEnabled  bool
 	warnEnabled  bool
 	errorEnabled bool
+	logFileEnabled bool
 	logFile string
+	logFileToClose *os.File
 }
 
 // NewGoLoggerBuilder creates a builder that knows how to build a logger that uses the Go `log`
@@ -58,7 +60,6 @@ func NewGoLoggerBuilder() *GoLoggerBuilder {
 	builder.warnEnabled = true
 	builder.errorEnabled = true
         builder.logFile = ""
-
 
 	return builder
 }
@@ -101,17 +102,16 @@ func (b *GoLoggerBuilder) Build() (logger *GoLogger, err error) {
 	logger.infoEnabled = b.infoEnabled
 	logger.warnEnabled = b.warnEnabled
 	logger.errorEnabled = b.errorEnabled
+	logger.logFile = b.logFile
 
 	if b.logFile != "" {
-                log.Output(1,"here")
                 lFile, err := os.OpenFile(b.logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
                 if err != nil {
-                        log.Fatal("Error opening log-file for writing: %v\n", err)
+                        log.Fatalf("Error opening log-file for writing: %v\n", err)
                 }
+		logger.logFileToClose = lFile
                 logger.SetOutput(lFile)
-                defer lFile.Close()
         }
-        logger.Info(context.TODO(), "foo")
 
 	return
 }
@@ -136,9 +136,12 @@ func (l *GoLogger) ErrorEnabled() bool {
 	return l.errorEnabled
 }
 
-// LogFileEnabled returns the name of the log file or ""
-func (l *GoLogger) LogFileEnabled() string {
-        return l.logFile
+// LogFileEnabled returns true iff there is a log file set
+func (l *GoLogger) LogFileEnabled() bool {
+        if l.logFile != "" {
+                return true
+        }
+        return false
 }
 
 // Debug sends to the log a debug message formatted using the fmt.Sprintf function and the given
@@ -181,7 +184,14 @@ func (l *GoLogger) Error(ctx context.Context, format string, args ...interface{}
 		format = appendHeader(Error, format)
 		msg := fmt.Sprintf(format, args...)
 		// #nosec G104
-		log.Output(1, msg)
+		if l.LogFileEnabled() {
+                        mw := io.MultiWriter(log.Writer(), os.Stderr)
+                        log.SetOutput(mw)
+                }
+                log.Output(1, msg)
+                if l.LogFileEnabled() {
+                        log.SetOutput(l.logFileToClose)
+                }
 	}
 }
 
@@ -192,10 +202,23 @@ func (l *GoLogger) Fatal(ctx context.Context, format string, args ...interface{}
 	format = appendHeader(Fatal, format)
 	msg := fmt.Sprintf(format, args...)
 	// #nosec G104
+	if l.LogFileEnabled() {
+                mw := io.MultiWriter(log.Writer(), os.Stderr)
+                log.SetOutput(mw)
+        }
 	log.Output(1, msg)
+	l.DeferClose()
 	os.Exit(1)
 }
 
+// Set the output of the logger to a log file
 func (l *GoLogger) SetOutput(w io.Writer) {
         log.SetOutput(w)
+}
+
+// If we are writing to a log file, close it
+func (l *GoLogger) DeferClose() {
+        if l.LogFileEnabled() {
+                l.logFileToClose.Close()
+        }
 }
