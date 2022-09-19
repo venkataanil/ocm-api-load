@@ -1,9 +1,10 @@
 FROM fedora:37
 
-COPY image_resources/centos8.repo image_resources/centos8-appstream.repo /etc/yum.repos.d/
-RUN dnf install -y --nodocs python3 python3-pip python3-devel gcc && dnf clean all && \
-    dnf install -y --nodocs skopeo curl redis --enablerepo=centos8-appstream && dnf clean all && \
+COPY image_resources/centos9.repo image_resources/centos9-appstream.repo /etc/yum.repos.d/
+RUN dnf install -y --nodocs python3 python3-pip python3-devel-3.9.13-2.el9.x86_64 gcc && dnf clean all && \
+    dnf install -y --nodocs rsync tar curl skopeo redis --enablerepo=centos9-appstream && dnf clean all && \
     ln -s /usr/bin/python3 /usr/bin/python
+
 WORKDIR /workdir
 
 RUN curl -L -o ocm-load-test-linux.tgz \
