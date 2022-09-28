@@ -17,10 +17,12 @@ aws:
     access-key: "ASD7ASFET65FFGHDFFS"
     secret-access-key: "fjhgsadf6#$!@%&/dfghdfgdsdf"
     account-id: "123434565665"
+    account-name: "AcctName"
   - region: "us-west-2"
     access-key: "ASD7ASFET65FFGHDFFS"
     secret-access-key: "fjhgsadf6#$!@%&/dfghdfgdsdf"
     account-id: "123434565665"
+    account-name: "AcctName"
 elastic:
   server: "http://elastic.apps.perfscale.devcluster.openshift.com/"
   user: "user"
@@ -81,4 +83,13 @@ tests:
     ramp-steps: 6
   certificates:
     rate: "2/s"
+    duration: 1
+  create-services:
+    rate: "1/m"
+    duration: 1
+  get-services:
+    rate: "1/m"
+    duration: 1
+  patch-services:
+    rate: "1/m"
     duration: 1

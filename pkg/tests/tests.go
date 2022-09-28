@@ -100,6 +100,24 @@ var tests = []types.TestOptions{
 		Handler:  handlers.TestStaticEndpoint,
 		Body:     certificatesBody(),
 	},
+	{
+		TestName: "create-services",
+		Path:     "/api/service_mgmt/v1/services",
+		Method:   http.MethodPost,
+		Handler:  handlers.TestCreateService,
+	},
+	{
+		TestName: "get-services",
+		Path:     "/api/service_mgmt/v1/services",
+		Method:   http.MethodGet,
+		Handler:  handlers.TestStaticEndpoint,
+	},
+	{
+		TestName: "patch-services",
+		Path:     "/api/service_mgmt/v1/services/{srvcId}",
+		Method:   http.MethodPatch,
+		Handler:  handlers.TestPatchService,
+	},
 }
 
 func accessReviewBody() []byte {

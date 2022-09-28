@@ -21,9 +21,12 @@ var failedCleanupClusterIDs = make([]string, 0)
 var createdSubcriptionIDs = make([]string, 0)
 var validateDeletedSubcriptionIDs = make([]string, 0)
 var failedDeletedSubcriptionIDs = make([]string, 0)
+var createdServiceIDs = make([]string, 0)
+var validateDeletedServicesIDs = make([]string, 0)
+var failedDeletedServicesIDs = make([]string, 0)
 
 func Cleanup(ctx context.Context, connection *sdk.Connection) {
-	if len(createdClusterIDs) == 0 && len(createdSubcriptionIDs) == 0 {
+	if len(createdClusterIDs) == 0 && len(createdSubcriptionIDs) == 0 && len(createdServiceIDs) == 0 {
 		return
 	}
 	if len(createdClusterIDs) > 0 {
@@ -50,7 +53,7 @@ func Cleanup(ctx context.Context, connection *sdk.Connection) {
 		connection.Logger().Info(ctx, "About to delete the following subscriptions:")
 		for _, subscription := range createdSubcriptionIDs {
 			connection.Logger().Info(ctx, "Subscription ID: %s", subscription)
-			DeletedSubscription(ctx, subscription, connection)
+			DeleteSubscription(ctx, subscription, connection)
 		}
 		for _, subscriptionID := range validateDeletedSubcriptionIDs {
 			err := verifySubscriptionDeleted(ctx, subscriptionID, connection)
@@ -63,6 +66,24 @@ func Cleanup(ctx context.Context, connection *sdk.Connection) {
 		}
 		createdSubcriptionIDs = make([]string, 0)
 		failedDeletedSubcriptionIDs = make([]string, 0)
+	}
+	if len(createdServiceIDs) > 0 {
+		connection.Logger().Info(ctx, "About to delete the following services:")
+		for _, service := range createdServiceIDs {
+			connection.Logger().Info(ctx, "Service ID: %s", service)
+			DeleteService(ctx, service, connection)
+		}
+		for _, serviceID := range validateDeletedServicesIDs {
+			err := verifyServiceDeleted(ctx, serviceID, connection)
+			if err != nil {
+				failedDeletedServicesIDs = append(failedDeletedServicesIDs, serviceID)
+			}
+		}
+		if len(failedDeletedServicesIDs) > 0 {
+			connection.Logger().Warn(ctx, "The following services failed to be deleted: %v", failedDeletedServicesIDs)
+		}
+		createdServiceIDs = make([]string, 0)
+		failedDeletedServicesIDs = make([]string, 0)
 	}
 }
 
@@ -85,7 +106,7 @@ func DeleteCluster(ctx context.Context, id string, deprovision bool, connection 
 	}
 }
 
-func DeletedSubscription(ctx context.Context, id string, connection *sdk.Connection) {
+func DeleteSubscription(ctx context.Context, id string, connection *sdk.Connection) {
 	connection.Logger().Info(ctx, "Deleting subscription '%s'", id)
 	// Send the request to delete subscription
 	response, err := connection.Delete().
@@ -223,5 +244,68 @@ func verifySubscriptionDeleted(ctx context.Context, subscriptionID string, conne
 		return fmt.Errorf("failed to wait for subscription '%s' to be deleted", subscriptionID)
 	}
 	connection.Logger().Info(ctx, "Subscription '%s' deleted successfully", subscriptionID)
+	return nil
+}
+
+func DeleteService(ctx context.Context, id string, connection *sdk.Connection) {
+	connection.Logger().Info(ctx, "Deleting service '%s'", id)
+	// Send the request to delete the service
+	response, err := connection.Delete().
+		Path(ServiceEndpoint + id).
+		Send()
+	if err != nil {
+		connection.Logger().Error(ctx, "Failed to delete service '%s', got error: %v", id, err)
+		markFailedServiceCleanup(id)
+	} else if response.Status() != 201 {
+		connection.Logger().Error(ctx, "Failed to delete service '%s', got http status %d", id, response.Status())
+		markFailedServiceCleanup(id)
+	} else {
+		validateDeletedServicesIDs = append(validateDeletedServicesIDs, id)
+		connection.Logger().Info(ctx, "Service '%s' deleted", id)
+	}
+}
+
+func verifyServiceDeleted(ctx context.Context, serviceID string, connection *sdk.Connection) error {
+	connection.Logger().Info(ctx, "verifying deleted service '%s'", serviceID)
+	var forcedErr error
+	var getStatus int
+	err := retry.Retry(func(attempt uint) error {
+		getResponse, err := connection.Get().
+			Path(ServiceEndpoint + serviceID).
+			Send()
+		if err != nil {
+			return err
+		}
+		if getResponse.Status() != 200 {
+			getStatus = getResponse.Status()
+		} else if getResponse.Status() == 200 {
+			body, err := Parse(getResponse.Bytes())
+			if err != nil {
+				return err
+			}
+			status, ok := body["service_state"]
+			if !ok {
+				return err
+			}
+			if status == "deleting service" {
+				return nil
+			}
+			return forcedErr
+		}
+		return errors.Errorf("Service not deleted: %d", getResponse.Status())
+	},
+		strategy.Wait(1*time.Second),
+		strategy.Limit(300))
+	if err != nil {
+		connection.Logger().Error(ctx, "failed to delete service '%s': %v", serviceID, err)
+		return err
+	}
+	if forcedErr != nil {
+		return fmt.Errorf("failed to wait for service '%s' to be deleted", serviceID)
+	}
+	if getStatus != 200 {
+		return fmt.Errorf("failed to wait for service '%s' to be deleted", serviceID)
+	}
+	connection.Logger().Info(ctx, "Service '%s' deleted successfully", serviceID)
 	return nil
 }
