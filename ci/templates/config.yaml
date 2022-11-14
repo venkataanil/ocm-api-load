@@ -1,11 +1,14 @@
-ocm-token: $OCM_TOKEN
-ocm-token-url: $OCM_TOKEN_URL
+ocm:
+  token-url: $OCM_TOKEN_URL
+  auths:
+    - token: $OCM_TOKEN
 gateway-url: $GATEWAY_URL
 aws:
   - region: "$AWS_DEFAULT_REGION"
     access-key: "$AWS_ACCESS_KEY_ID"
     secret-access-key: "$AWS_SECRET_ACCESS_KEY"
     account-id: "$AWS_ACCOUNT_ID"
+    account-name: "osdCcsAdmin"
 elastic:
     server: "$ES_SERVER"
     index: "$ES_INDEX"
@@ -50,3 +53,12 @@ tests:
   certificates:
     rate: "$CERTIFICATES_RATE"
     duration: $CERTIFICATES_DURATION
+  create-services:
+    rate: "$CREATE_SERVICES_RATE"
+    duration: $CREATE_SERVICES_DURATION
+  get-services:
+    rate: "$GET_SERVICES_RATE"
+    duration: $GET_SERVICES_DURATION
+  patch-services:
+    rate: "$PATCH_SERVICES_RATE"
+    duration: $PATCH_SERVICES_DURATION
