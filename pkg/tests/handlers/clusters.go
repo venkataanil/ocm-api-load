@@ -46,10 +46,10 @@ func generateCreateClusterTargeter(ctx context.Context, ID, method, url string, 
 	// CCS is used to create fake clusters within the AWS
 	// environment supplied by the user executing this test.
 	// Not fully supporting multi account now, so using first accaunt always
-	ccsRegion := awsCreds[0].(map[interface{}]interface{})["region"].(string)
-	ccsAccessKey := awsCreds[0].(map[interface{}]interface{})["access-key"].(string)
-	ccsSecretKey := awsCreds[0].(map[interface{}]interface{})["secret-access-key"].(string)
-	ccsAccountID := awsCreds[0].(map[interface{}]interface{})["account-id"].(string)
+	ccsRegion := awsCreds[0].(map[string]interface{})["region"].(string)
+	ccsAccessKey := awsCreds[0].(map[string]interface{})["access-key"].(string)
+	ccsSecretKey := awsCreds[0].(map[string]interface{})["secret-access-key"].(string)
+	ccsAccountID := awsCreds[0].(map[string]interface{})["account-id"].(string)
 
 	targeter := func(t *vegeta.Target) error {
 		fakeClusterProps := map[string]string{
