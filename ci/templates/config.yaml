@@ -13,52 +13,59 @@ elastic:
     server: "$ES_SERVER"
     index: "$ES_INDEX"
     insecure-skip-verify: true
-duration: $DURATION
-cooldown: $COOLDOWN
-output-path: "/tmp/$UUID/results"
-rate: "$RATE"
+duration: 5
+cooldown: 10
+output-path: "./results"
+rate: "10/m"
 test-id: $UUID
 ramp-type: $RAMP_TYPE
 start-rate: $RAMP_START_RATE
 end-rate: $RAMP_END_RATE
 ramp-steps: $RAMP_STEPS
-sleep: $SLEEP
+sleep: 10
 tests:
   self-access-token:
-    rate: "$SELF_ACCESS_TOKEN_RATE"
+    rate: "10/m"
+    duration: 5
   list-subscriptions:
-    rate: "$LIST_SUBSCRIPTIONS_RATE"
+    rate: "10/m"
+    duration: 5
   access-review:
-    rate: "$ACCESS_REVIEW_RATE"
+    rate: "10/m"
+    duration: 5
   register-new-cluster:
-    rate: "$RATE"
+    rate: "10/m"
+    duration: 5
   register-existing-cluster:
-    rate: "$REGISTER_EXISTING_CLUSTER_RATE"
+    rate: "10/m"
+    duration: 5
   create-cluster:
-    rate: "$CREATE_CLUSTER_DURATION"
+    rate: "10/m"
+    duration: 5
   list-clusters:
-    rate: "$LIST_CLUSTERS_RATE"
+    rate: "10/m"
+    duration: 5
   get-current-account:
-    duration: $GET_CURRENT_ACCOUNT_DURATION
+    rate: "10/m"
+    duration: 5
   quota-cost:
-    rate: "$RATE"
+    rate: "10/m"
+    duration: 5
   resource-review:
-    rate: "$RESOURCE_REVIEW_RATE"
+    rate: "10/m"
+    duration: 5
   cluster-authorizations:
-    rate: "$CLUSTER_AUTHORIZATIONS_RATE"
-    duration: $CLUSTER_AUTHORIZATIONS_DURATION
+    rate: "10/m"
+    duration: 5
   self-terms-review:
-    rate: "$SELF_TERMS_RATE"
-    duration: $SELF_TERMS_DURATION
+    rate: "10/m"
+    duration: 5
   certificates:
-    rate: "$CERTIFICATES_RATE"
-    duration: $CERTIFICATES_DURATION
+    rate: "10/m"
+    duration: 5
   create-services:
-    rate: "$CREATE_SERVICES_RATE"
-    duration: $CREATE_SERVICES_DURATION
+    rate: "10/m"
+    duration: 5
   get-services:
-    rate: "$GET_SERVICES_RATE"
-    duration: $GET_SERVICES_DURATION
-  patch-services:
-    rate: "$PATCH_SERVICES_RATE"
-    duration: $PATCH_SERVICES_DURATION
+    rate: "10/m"
+    duration: 5
