@@ -12,7 +12,6 @@ import (
 	"github.com/cloud-bulldozer/ocm-api-load/pkg/logging"
 	"github.com/cloud-bulldozer/ocm-api-load/pkg/types"
 	v1 "github.com/openshift-online/ocm-sdk-go/servicemgmt/v1"
-	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 )
@@ -55,13 +54,11 @@ func generateCreateServiceTargeter(ctx context.Context, ID, method, url string, 
 	ccsAccountName := awsCreds[0].(map[string]interface{})["account-name"].(string)
 
 	targeter := func(t *vegeta.Target) error {
-		fakeClusterProps := map[string]string{
-			"fake_cluster": "true",
-		}
 		arn := strings.Replace("arn:aws:iam::{acctID}:user/{acctName}", "{acctID}", ccsAccountID, -1)
 		arn = strings.Replace(arn, "{acctName}", ccsAccountName, -1)
-		rosaCreatorProps := map[string]string{
+		creatorProps := map[string]string{
 			"rosa_creator_arn": arn,
+			"fake_cluster": "true",
 		}
 
 		body, err := v1.NewManagedService().
@@ -76,8 +73,7 @@ func generateCreateServiceTargeter(ctx context.Context, ID, method, url string, 
 						AccountID(ccsAccountID),
 				).
 				Nodes(v1.NewClusterNodes().AvailabilityZones(fmt.Sprintf("%sa", ccsRegion))).
-				Properties(fakeClusterProps).
-				Properties(rosaCreatorProps).
+				Properties(creatorProps).
 				Region(v1.NewCloudRegion().ID(ccsRegion))).
 			Build()
 
@@ -101,8 +97,6 @@ func generateCreateServiceTargeter(ctx context.Context, ID, method, url string, 
 }
 
 func TestPatchService(ctx context.Context, options *types.TestOptions) error {
-	idx := 0
-
 	// This will take the first 4 characters of the UUID
 	// Cluster Names must match the following regex:
 	// ^[a-z]([-a-z0-9]*[a-z0-9])?$
@@ -123,35 +117,30 @@ func TestPatchService(ctx context.Context, options *types.TestOptions) error {
 	ccsAccountName := awsCreds[0].(map[string]interface{})["account-name"].(string)
 	serviceIds := make([]string, 2)
 
-	fakeClusterProps := map[string]string{
-		"fake_cluster": "true",
-	}
 	arn := strings.Replace("arn:aws:iam::{acctID}:user/{acctName}", "{acctID}", ccsAccountID, -1)
 	arn = strings.Replace(arn, "{acctName}", ccsAccountName, -1)
-	rosaCreatorProps := map[string]string{
+	creatorProps := map[string]string{
 		"rosa_creator_arn": arn,
+		"fake_cluster": "true",
 	}
 
 	// Register multiple mock Services and store their IDs
 	options.Logger.Info(ctx, "Registering 2 Services to use for patch requests test")
 	for i := range serviceIds {
 
-		clusterID := uuid.NewV4().String()
-
 		body, err := v1.NewManagedService().
 			Service("ocm-addon-test-operator").
 			Parameters(v1.NewServiceParameter().ID("has-external-resources").Value("false")).
 			Cluster(v1.NewCluster().
-				Name(fmt.Sprintf("perf-%s-%d", id, idx)).
+				Name(fmt.Sprintf("perf-%s-%d", id, i)).
 				AWS(
 					v1.NewAWS().
 						AccessKeyID(ccsAccessKey).
 						SecretAccessKey(ccsSecretKey).
 						AccountID(ccsAccountID),
 				).
-				Nodes(v1.NewClusterNodes().AvailabilityZones(ccsRegion)).
-				Properties(fakeClusterProps).
-				Properties(rosaCreatorProps).
+				Nodes(v1.NewClusterNodes().AvailabilityZones(fmt.Sprintf("%sa", ccsRegion))).
+				Properties(creatorProps).
 				Region(v1.NewCloudRegion().ID(ccsRegion))).
 			Build()
 		if err != nil {
@@ -174,10 +163,25 @@ func TestPatchService(ctx context.Context, options *types.TestOptions) error {
 		}
 
 		options.Logger.Info(ctx, "[%d/%d] Created Service: '%s'. Response: %d\n", i, len(serviceIds), serviceID, resp.Status())
-		serviceIds[i] = clusterID
+		serviceIds[i] = serviceID
 
-		// Avoid hitting rate limiting
+		// Wait till we reach "waiting for addon" state, service is taking 6 min to reach this state
+		// Patching is allowed only when the service is in "waiting for addon" state
 		time.Sleep(time.Second * 1)
+		collection := options.Connection.ServiceMgmt().V1().Services()
+		resource := collection.Service(serviceID)
+		pollCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
+		_, perr := resource.Poll().
+			Interval(30 * time.Second).
+			Predicate(func(get *v1.ManagedServiceGetResponse) bool {
+				return get.Body().ServiceState() == "waiting for addon"
+			}).
+			StartContext(pollCtx)
+		if perr != nil {
+			options.Logger.Info(ctx, "StartContext failed %v", perr)
+		}
+
 	}
 
 	testName := options.TestName
@@ -195,54 +199,11 @@ func generatePatchServiceTargeter(ctx context.Context, ID, method, url string, l
 	idx := 0
 	var currentTarget = 0
 
-	// This will take the first 4 characters of the UUID
-	// Cluster Names must match the following regex:
-	// ^[a-z]([-a-z0-9]*[a-z0-9])?$
-	id := ID[:4]
-
-	awsCreds := viper.Get("aws").([]interface{})
-	if len(awsCreds) < 1 {
-		log.Fatal(ctx, "No aws credentials found")
-	}
-
-	// CCS is used to create fake clusters within the AWS
-	// environment supplied by the user executing this test.
-	// Not fully supporting multi account now, so using first accaunt always
-	ccsRegion := awsCreds[0].(map[string]interface{})["region"].(string)
-	ccsAccessKey := awsCreds[0].(map[string]interface{})["access-key"].(string)
-	ccsSecretKey := awsCreds[0].(map[string]interface{})["secret-access-key"].(string)
-	ccsAccountID := awsCreds[0].(map[string]interface{})["account-id"].(string)
-	ccsAccountName := awsCreds[0].(map[string]interface{})["account-name"].(string)
-
+	// Only "Parameters" option is allowed with patching
 	targeter := func(t *vegeta.Target) error {
-		fakeClusterProps := map[string]string{
-			"fake_cluster": "true",
-		}
-		arn := strings.Replace("arn:aws:iam::{acctID}:user/{acctName}", "{acctID}", ccsAccountID, -1)
-		arn = strings.Replace(arn, "{acctName}", ccsAccountName, -1)
-		rosaCreatorProps := map[string]string{
-			"rosa_creator_arn": arn,
-		}
-		updateProps := map[string]string{
-			"random_prop": fmt.Sprintf("prop-%d", idx),
-		}
 
 		body, err := v1.NewManagedService().
-			Service("ocm-addon-test-operator").
 			Parameters(v1.NewServiceParameter().ID("has-external-resources").Value("false")).
-			Cluster(v1.NewCluster().
-				Name(fmt.Sprintf("perf-%s-%d", id, idx)).
-				AWS(
-					v1.NewAWS().
-						AccessKeyID(ccsAccessKey).
-						SecretAccessKey(ccsSecretKey).
-						AccountID(ccsAccountID),
-				).
-				Nodes(v1.NewClusterNodes().AvailabilityZones(ccsRegion)).
-				Properties(fakeClusterProps).
-				Properties(rosaCreatorProps).
-				Properties(updateProps).
-				Region(v1.NewCloudRegion().ID(ccsRegion))).
 			Build()
 
 		if err != nil {

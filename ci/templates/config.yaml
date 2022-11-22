@@ -15,7 +15,7 @@ elastic:
     insecure-skip-verify: true
 duration: $DURATION
 cooldown: $COOLDOWN
-output-path: "/tmp/$UUID/results"
+output-path: "./results"
 rate: "$RATE"
 test-id: $UUID
 ramp-type: $RAMP_TYPE
