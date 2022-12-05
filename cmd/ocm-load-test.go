@@ -176,8 +176,8 @@ func run(cmd *cobra.Command, args []string) error {
                 os.Exit(1)
         }
 
-	if viper.Sub("ocm") == nil {
-		logger.Fatal(cmd.Context(), "ocm is a necessary configuration")
+	if viper.Sub("ocm") == nil && viper.GetString("ocm-token") == "" {
+		logger.Fatal(cmd.Context(), "ocm section or ocm-token is necessary configuration")
 	}
 	err = helpers.CreateFolder(cmd.Context(), viper.GetString("output-path"), logger)
 	if err != nil {

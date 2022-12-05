@@ -47,7 +47,18 @@ func BuildConnection(gateway, clientID, clientSecret, token string, logger loggi
 
 func BuildConnections(ctx context.Context, logger logging.Logger) ([]*sdk.Connection, error) {
 	connections := make([]*sdk.Connection, 0)
-	auths := viper.GetStringMap("ocm")["auths"].([]interface{})
+
+	var auths []interface{}
+	if viper.Sub("ocm") != nil {
+		auths = viper.GetStringMap("ocm")["auths"].([]interface{})
+	} else if viper.GetString("ocm-token") != "" {
+		auth := map[string]interface{}{
+				"token": viper.GetString("ocm-token"),
+				"client-id": viper.GetString("client.id"),
+				"client-secret": viper.GetString("client.secret"),
+			}
+		auths = append(auths, auth)
+	}
 	for _, a := range auths {
 		m := a.(map[string]interface{})
 		token, ok := m["token"]
