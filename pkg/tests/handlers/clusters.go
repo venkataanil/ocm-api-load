@@ -55,6 +55,9 @@ func generateCreateClusterTargeter(ctx context.Context, ID, method, url string, 
 		fakeClusterProps := map[string]string{
 			"fake_cluster": "true",
 		}
+		awsTags := map[string]string{
+			"User": "pocm-perf",
+		}
 		body, err := v1.NewCluster().
 			Name(fmt.Sprintf("pocm-%s-%d", id, idx)).
 			Properties(fakeClusterProps).
@@ -65,7 +68,8 @@ func generateCreateClusterTargeter(ctx context.Context, ID, method, url string, 
 				v1.NewAWS().
 					AccessKeyID(ccsAccessKey).
 					SecretAccessKey(ccsSecretKey).
-					AccountID(ccsAccountID),
+					AccountID(ccsAccountID).
+					Tags(awsTags),
 			).
 			Build()
 		if err != nil {
