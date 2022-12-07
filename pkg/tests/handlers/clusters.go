@@ -56,7 +56,7 @@ func generateCreateClusterTargeter(ctx context.Context, ID, method, url string, 
 			"fake_cluster": "true",
 		}
 		body, err := v1.NewCluster().
-			Name(fmt.Sprintf("perf-%s-%d", id, idx)).
+			Name(fmt.Sprintf("pocm-%s-%d", id, idx)).
 			Properties(fakeClusterProps).
 			MultiAZ(true).
 			Region(v1.NewCloudRegion().ID(ccsRegion)).

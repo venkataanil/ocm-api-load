@@ -65,7 +65,7 @@ func generateCreateServiceTargeter(ctx context.Context, ID, method, url string, 
 			Service("ocm-addon-test-operator").
 			Parameters(v1.NewServiceParameter().ID("has-external-resources").Value("false")).
 			Cluster(v1.NewCluster().
-				Name(fmt.Sprintf("perf-%s-%d", id, idx)).
+				Name(fmt.Sprintf("pocm-%s-%d", id, idx)).
 				AWS(
 					v1.NewAWS().
 						AccessKeyID(ccsAccessKey).
@@ -132,7 +132,7 @@ func TestPatchService(ctx context.Context, options *types.TestOptions) error {
 			Service("ocm-addon-test-operator").
 			Parameters(v1.NewServiceParameter().ID("has-external-resources").Value("false")).
 			Cluster(v1.NewCluster().
-				Name(fmt.Sprintf("perf-%s-%d", id, i)).
+				Name(fmt.Sprintf("pocm-%s-%d", id, i)).
 				AWS(
 					v1.NewAWS().
 						AccessKeyID(ccsAccessKey).
