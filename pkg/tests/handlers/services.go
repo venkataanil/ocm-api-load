@@ -60,17 +60,21 @@ func generateCreateServiceTargeter(ctx context.Context, ID, method, url string, 
 			"rosa_creator_arn": arn,
 			"fake_cluster": "true",
 		}
+		awsTags := map[string]string{
+			"User": "pocm-perf",
+		}
 
 		body, err := v1.NewManagedService().
 			Service("ocm-addon-test-operator").
 			Parameters(v1.NewServiceParameter().ID("has-external-resources").Value("false")).
 			Cluster(v1.NewCluster().
-				Name(fmt.Sprintf("perf-%s-%d", id, idx)).
+				Name(fmt.Sprintf("pocm-%s-%d", id, idx)).
 				AWS(
 					v1.NewAWS().
 						AccessKeyID(ccsAccessKey).
 						SecretAccessKey(ccsSecretKey).
-						AccountID(ccsAccountID),
+						AccountID(ccsAccountID).
+					        Tags(awsTags),
 				).
 				Nodes(v1.NewClusterNodes().AvailabilityZones(fmt.Sprintf("%sa", ccsRegion))).
 				Properties(creatorProps).
@@ -123,6 +127,9 @@ func TestPatchService(ctx context.Context, options *types.TestOptions) error {
 		"rosa_creator_arn": arn,
 		"fake_cluster": "true",
 	}
+	awsTags := map[string]string{
+		"User": "pocm-perf",
+	}
 
 	// Register multiple mock Services and store their IDs
 	options.Logger.Info(ctx, "Registering 2 Services to use for patch requests test")
@@ -132,12 +139,13 @@ func TestPatchService(ctx context.Context, options *types.TestOptions) error {
 			Service("ocm-addon-test-operator").
 			Parameters(v1.NewServiceParameter().ID("has-external-resources").Value("false")).
 			Cluster(v1.NewCluster().
-				Name(fmt.Sprintf("perf-%s-%d", id, i)).
+				Name(fmt.Sprintf("pocm-%s-%d", id, i)).
 				AWS(
 					v1.NewAWS().
 						AccessKeyID(ccsAccessKey).
 						SecretAccessKey(ccsSecretKey).
-						AccountID(ccsAccountID),
+						AccountID(ccsAccountID).
+					        Tags(awsTags),
 				).
 				Nodes(v1.NewClusterNodes().AvailabilityZones(fmt.Sprintf("%sa", ccsRegion))).
 				Properties(creatorProps).
