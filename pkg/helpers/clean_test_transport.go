@@ -64,12 +64,12 @@ func (t *CleanTestTransport) addToCleanup(request *http.Request, response *http.
 		// Testing for cluster registration body
 		clusterID, ok = cluster["cluster_id"]
 		if !ok {
-			t.Logger.Error(ctx, "Failed to get cluster ID from body of response for request %s %s: %v", request.Method,
+			t.Logger.Error(ctx, "Failed to get cluster ID %s from body of response for request %s %s: %v", clusterID, request.Method,
 				request.URL.String(), err)
 			return response
 		}
 	}
-	markClusterForCleanup(ctx, clusterID.(string), deprovision, t.Logger)
+	//markClusterForCleanup(ctx, clusterID.(string), deprovision, t.Logger)
 
 	body, err := json.Marshal(cluster)
 	if err != nil {
