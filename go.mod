@@ -10,7 +10,7 @@ require (
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
 	github.com/tsenart/vegeta/v12 v12.8.4
-	github.com/zgalor/weberr v0.7.0
+	github.com/zgalor/weberr v0.8.2
 )
 
 require github.com/pelletier/go-toml/v2 v2.0.1 // indirect
